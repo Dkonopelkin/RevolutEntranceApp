@@ -56,6 +56,14 @@ class RatesViewModel(
         disposables.dispose()
     }
 
+    fun onCurrencySelected(currencyCode: String) {
+        Log.d("ViewModel", "onCurrencySelected")
+    }
+
+    fun onValueChanged(currencyCode: String, newValue: String) {
+        Log.d("ViewModel", "onValueChanged")
+    }
+
 
     data class UIState(
         val ratesList: List<RateItem>

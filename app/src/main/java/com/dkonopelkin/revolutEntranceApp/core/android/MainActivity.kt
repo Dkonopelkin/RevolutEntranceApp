@@ -12,7 +12,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val fragment = RatesListFragment.newInstance()
         supportFragmentManager.beginTransaction()
-            .add(R.id.fragmentContainer, fragment, RatesListFragment.FRAGMENT_TAG)
+            .replace(R.id.fragmentContainer, fragment, RatesListFragment.FRAGMENT_TAG)
             .commitAllowingStateLoss()
     }
 }

@@ -36,7 +36,17 @@ class RatesListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        ratesListAdapter = RatesListAdapter(arrayListOf(), requireContext())
+        val callback = object : RatesListAdapter.Callback {
+            override fun onItemSelected(currencyCode: String) {
+                viewModel.onCurrencySelected(currencyCode)
+            }
+
+            override fun onValueChanged(currencyCode: String, newValue: String) {
+                viewModel.onValueChanged(currencyCode, newValue)
+            }
+        }
+
+        ratesListAdapter = RatesListAdapter(arrayListOf(), requireContext(), callback)
         recyclerView.apply {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(requireContext())
