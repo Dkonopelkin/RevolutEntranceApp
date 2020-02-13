@@ -42,7 +42,7 @@ class RatesListFragment : Fragment() {
             }
 
             override fun onValueChanged(currencyCode: String, newValue: String) {
-                viewModel.onValueChanged(currencyCode, newValue)
+                viewModel.onValueChanged(newValue)
             }
         }
 

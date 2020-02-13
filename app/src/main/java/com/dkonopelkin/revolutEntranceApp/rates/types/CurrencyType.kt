@@ -7,6 +7,7 @@ enum class CurrencyType(
     val currencyDescription: String,
     val iconResId: Int
 ) {
+    EUR("EUR", "Euro", R.drawable.ic_currency_eur),
     AUD("AUD", "Australian Dollar", R.drawable.ic_currency_aud),
     BGN("BGN", "Bulgarian Lev", R.drawable.ic_currency_bgn),
     BRL("BRL", "Brazilian Real", R.drawable.ic_currency_brl),
@@ -43,7 +44,7 @@ enum class CurrencyType(
     companion object {
         fun getByCurrencyCode(code: String): CurrencyType {
             return values().firstOrNull { currencyType -> currencyType.currencyCode == code }
-                ?: throw IllegalArgumentException("Unknown currency code")
+                ?: throw IllegalArgumentException("Unknown currency $code")
         }
     }
 }

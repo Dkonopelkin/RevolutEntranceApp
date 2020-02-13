@@ -1,5 +1,6 @@
 package com.dkonopelkin.revolutEntranceApp.rates.data
 
+import android.util.Log
 import com.dkonopelkin.revolutEntranceApp.rates.domain.LoadRatesGateway
 import io.reactivex.Single
 
@@ -7,6 +8,7 @@ class LoadRatesGatewayImpl(private val ratesApiInterface: RatesApiInterface) : L
     override fun loadRates(currencyCode: String): Single<LoadRatesGateway.Result> {
         return ratesApiInterface.getRates(currencyCode)
             .map { apiResult ->
+                Log.d("loadRates", "$apiResult")
                 LoadRatesGateway.Result(
                     base = apiResult.base,
                     rates = apiResult.rates
