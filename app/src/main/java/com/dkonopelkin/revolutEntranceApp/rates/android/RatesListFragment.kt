@@ -37,12 +37,12 @@ class RatesListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val callback = object : RatesListAdapter.Callback {
-            override fun onItemSelected(currencyCode: String) {
-                viewModel.onCurrencySelected(currencyCode)
+            override fun onItemSelected(currencyCode: String, amount: String) {
+                viewModel.onCurrencySelected(currencyCode, amount)
             }
 
-            override fun onValueChanged(currencyCode: String, newValue: String) {
-                viewModel.onValueChanged(newValue)
+            override fun onValueChanged(currencyCode: String, amount: String) {
+                viewModel.onValueChanged(currencyCode, amount)
             }
         }
 

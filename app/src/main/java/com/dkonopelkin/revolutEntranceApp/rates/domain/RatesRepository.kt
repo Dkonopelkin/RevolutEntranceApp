@@ -6,6 +6,6 @@ import java.math.BigDecimal
 
 interface RatesRepository {
     fun save(baseCurrencyCode: String, rates: Map<String, BigDecimal>): Completable
-    fun observeRatesByCode(key: String): Observable<Map<String, BigDecimal>>
+    fun observeRatesByCode(baseCode: String): Observable<Map<String, BigDecimal>>
     fun clear()
 }

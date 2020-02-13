@@ -1,5 +1,6 @@
 package com.dkonopelkin.revolutEntranceApp.rates.data
 
+import com.dkonopelkin.revolutEntranceApp.core.utils.parseBigDecimal
 import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
 import io.reactivex.Completable
 import io.reactivex.Observable
@@ -27,7 +28,7 @@ class RatesRepositoryImpl(val database: RatesCacheDatabase) : RatesRepository {
         return database.getRatesDao().getAllRatioByBaseCode(baseCode)
             .debounce(50, TimeUnit.MILLISECONDS)
             .map { list ->
-                list.map { currencyRateEntity -> currencyRateEntity.currencyCode to currencyRateEntity.ratio.toBigDecimal() }
+                list.map { currencyRateEntity -> currencyRateEntity.currencyCode to currencyRateEntity.ratio.parseBigDecimal() }
                     .toMap()
             }
     }

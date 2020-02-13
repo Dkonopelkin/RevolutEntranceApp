@@ -46,11 +46,12 @@
     <EditText
         android:id="@+id/inputField"
         style="@style/InputFieldRatesListStyle"
-        android:layout_width="93dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:hint="@string/hint_zero_string"
         android:inputType="numberDecimal"
+        android:minWidth="93dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"

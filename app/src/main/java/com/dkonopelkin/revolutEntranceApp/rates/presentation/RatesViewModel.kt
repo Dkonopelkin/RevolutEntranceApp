@@ -1,15 +1,15 @@
 package com.dkonopelkin.revolutEntranceApp.rates.presentation
 
-import android.graphics.drawable.Drawable
 import android.util.Log
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.dkonopelkin.revolutEntranceApp.core.di.AppInjector.appDependencies
+import com.dkonopelkin.revolutEntranceApp.core.utils.parseBigDecimal
+import com.dkonopelkin.revolutEntranceApp.core.utils.toFormattedString
 import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
 import com.dkonopelkin.revolutEntranceApp.rates.interactors.LoadRatesAndSave
 import com.dkonopelkin.revolutEntranceApp.rates.types.CurrencyType
 import io.reactivex.Observable
+import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
@@ -43,14 +43,20 @@ class RatesViewModel(
         disposables.dispose()
     }
 
-    fun onCurrencySelected(currencyCode: String) {
-        currentBase = currencyCode
-        baseCurrencyStateSubject.onNext(Currency(currentBase, currentCount))
+    fun onCurrencySelected(currencyCode: String, amount: String) {
+        if (currencyCode != currentBase) {
+            currentBase = currencyCode
+            currentCount = amount.parseBigDecimal()
+            baseCurrencyStateSubject.onNext(Currency(currencyCode, currentCount))
+        }
     }
 
-    fun onValueChanged(newValue: String) {
-        currentCount = newValue.toBigDecimal()
-        baseCurrencyStateSubject.onNext(Currency(currentBase, currentCount))
+    fun onValueChanged(currencyCode: String, amount: String) {
+        if (amount.parseBigDecimal() != currentCount) {
+            currentBase = currencyCode
+            currentCount = amount.parseBigDecimal()
+            baseCurrencyStateSubject.onNext(Currency(currencyCode, currentCount))
+        }
     }
 
     private fun updateRatesSubscription() {
@@ -61,7 +67,7 @@ class RatesViewModel(
         val subscription = Observable
             .combineLatest<Long, Currency, String>(
                 observableUpdateSignal,
-                baseCurrencyStateSubject,
+                baseCurrencyStateSubject.observeOn(Schedulers.io()),
                 BiFunction { _, currency -> currency.code }
             )
             .switchMapCompletable { baseCode ->
@@ -71,10 +77,12 @@ class RatesViewModel(
 
         disposables.add(subscription
             .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { Log.d("onComplete", "done") },
-                { throwable -> Log.d("onError", throwable.toString()) }
+                { throwable ->
+                    Log.d("onError", throwable.toString())
+                    //throw(throwable)
+                }
             )
         )
 
@@ -83,17 +91,14 @@ class RatesViewModel(
     private fun updateUiSubscription() {
 
         fun mapUiState(sourceList: List<Currency>): UIState {
-            val list = sourceList.map { currency ->
+            val list = sourceList.mapIndexed { index, currency ->
                 val currencyInfo = CurrencyType.getByCurrencyCode(currency.code)
                 UIState.RateItem(
                     code = currency.code,
                     description = currencyInfo.currencyDescription,
-                    amount = currency.amount,
-                    icon = ContextCompat.getDrawable(
-                        appDependencies.context,
-                        currencyInfo.iconResId
-                    )!!,
-                    isBaseCurrency = false
+                    amount = currency.amount.toFormattedString(),
+                    icon = currencyInfo.iconResId,
+                    isBaseCurrency = index == 0
                 )
             }
             return UIState(list)
@@ -123,7 +128,10 @@ class RatesViewModel(
                     Log.d("onNext", result.toString())
                     stateLiveData.value = mapUiState(result)
                 },
-                { throwable -> Log.d("onError", throwable.toString()) },
+                { throwable ->
+                    Log.d("onError", throwable.toString())
+                    //throw(throwable)
+                },
                 { Log.d("onComplete", "done") }
             )
         )
@@ -140,8 +148,8 @@ class RatesViewModel(
         data class RateItem(
             val code: String,
             val description: String,
-            val amount: BigDecimal,
-            val icon: Drawable,
+            val amount: String,
+            val icon: Int,
             val isBaseCurrency: Boolean
         )
     }
