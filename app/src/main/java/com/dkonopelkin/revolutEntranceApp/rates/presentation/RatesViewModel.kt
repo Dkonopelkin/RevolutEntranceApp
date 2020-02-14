@@ -9,13 +9,14 @@ import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
 import com.dkonopelkin.revolutEntranceApp.rates.interactors.LoadRatesAndSave
 import com.dkonopelkin.revolutEntranceApp.rates.types.CurrencyType
 import io.reactivex.Observable
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
 import java.math.BigDecimal
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 
 class RatesViewModel(
@@ -24,6 +25,9 @@ class RatesViewModel(
 ) : ViewModel() {
 
     val stateLiveData = MutableLiveData<UIState>()
+    val errorLiveData = MutableLiveData<Error>()
+
+
     private val disposables = CompositeDisposable()
 
     private var currentBase: String = "EUR"
@@ -32,6 +36,8 @@ class RatesViewModel(
         BehaviorSubject.createDefault(Currency(currentBase, currentCount))
 
     data class Currency(val code: String, val amount: BigDecimal)
+
+    private val retrySubject = PublishSubject.create<Unit>()
 
     init {
         updateRatesSubscription()
@@ -59,6 +65,11 @@ class RatesViewModel(
         }
     }
 
+    fun onRetrySubscription() {
+        errorLiveData.value = Error.NoError
+        retrySubject.onNext(Unit)
+    }
+
     private fun updateRatesSubscription() {
 
         val observableUpdateSignal: Observable<Long> =
@@ -77,11 +88,17 @@ class RatesViewModel(
 
         disposables.add(subscription
             .subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
             .subscribe(
                 { Log.d("onComplete", "done") },
                 { throwable ->
                     Log.d("onError", throwable.toString())
-                    //throw(throwable)
+                    when (throwable) {
+                        is UnknownHostException -> errorLiveData.value = Error.NetworkError
+                        else -> {
+                            errorLiveData.value = Error.ServerError(throwable.toString())
+                        }
+                    }
                 }
             )
         )
@@ -137,11 +154,6 @@ class RatesViewModel(
         )
     }
 
-    private fun recalculateValue() {
-
-    }
-
-
     data class UIState(
         val ratesList: List<RateItem>
     ) {
@@ -152,5 +164,11 @@ class RatesViewModel(
             val icon: Int,
             val isBaseCurrency: Boolean
         )
+    }
+
+    sealed class Error {
+        object NoError : Error()
+        object NetworkError : Error()
+        data class ServerError(val msg: String) : Error()
     }
 }

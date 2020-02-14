@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Rates</string>
     <string name="hint_zero_string">0</string>
+    <string name="snackbar_connection_lost">Connection lost</string>
+    <string name="snackbar_retry_button">Retry</string>
+    <string name="error_dialog_title">Error</string>
+    <string name="error_dialog_button_ok">OK</string>
 </resources>
