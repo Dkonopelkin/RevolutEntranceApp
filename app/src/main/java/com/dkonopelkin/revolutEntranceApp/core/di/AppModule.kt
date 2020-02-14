@@ -1,6 +1,7 @@
 package com.dkonopelkin.revolutEntranceApp.core.di
 
 import com.dkonopelkin.revolutEntranceApp.core.config.ApplicationConst
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
@@ -40,5 +41,10 @@ abstract class AppModule {
                 .addInterceptor(logging)
                 .build()
         }
+
+        @JvmStatic
+        @Provides
+        @Singleton
+        fun provideGson(): Gson = Gson()
     }
 }

@@ -8,6 +8,7 @@ import com.dkonopelkin.revolutEntranceApp.rates.domain.LoadRatesGateway
 import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
 import com.dkonopelkin.revolutEntranceApp.rates.interactors.LoadRatesAndSave
 import com.dkonopelkin.revolutEntranceApp.rates.presentation.RatesViewModel
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
@@ -56,15 +57,15 @@ abstract class RatesModule {
         @JvmStatic
         @Provides
         @RatesScope
-        fun provideCurrencyStateStorage(): CurrencyStateStorage = CurrencyStateStorageImpl()
+        fun provideCurrencyStateStorage(context: Context, gson: Gson): CurrencyStateStorage =
+            CurrencyStateStorageImpl(context, gson)
 
 
         @JvmStatic
         @Provides
         @RatesScope
-        fun provideLoadRatesGateway(ratesApiInterface: RatesApiInterface): LoadRatesGateway {
-            return LoadRatesGatewayImpl(ratesApiInterface = ratesApiInterface)
-        }
+        fun provideLoadRatesGateway(ratesApiInterface: RatesApiInterface): LoadRatesGateway =
+            LoadRatesGatewayImpl(ratesApiInterface = ratesApiInterface)
 
         @JvmStatic
         @Provides
