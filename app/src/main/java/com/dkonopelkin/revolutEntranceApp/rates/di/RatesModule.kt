@@ -2,10 +2,8 @@ package com.dkonopelkin.revolutEntranceApp.rates.di
 
 import android.content.Context
 import androidx.room.Room
-import com.dkonopelkin.revolutEntranceApp.rates.data.LoadRatesGatewayImpl
-import com.dkonopelkin.revolutEntranceApp.rates.data.RatesApiInterface
-import com.dkonopelkin.revolutEntranceApp.rates.data.RatesCacheDatabase
-import com.dkonopelkin.revolutEntranceApp.rates.data.RatesRepositoryImpl
+import com.dkonopelkin.revolutEntranceApp.rates.data.*
+import com.dkonopelkin.revolutEntranceApp.rates.domain.CurrencyStateStorage
 import com.dkonopelkin.revolutEntranceApp.rates.domain.LoadRatesGateway
 import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
 import com.dkonopelkin.revolutEntranceApp.rates.interactors.LoadRatesAndSave
@@ -32,11 +30,13 @@ abstract class RatesModule {
         @RatesScope
         fun provideRatesViewModel(
             loadRatesAndSave: LoadRatesAndSave,
-            ratesRepository: RatesRepository
+            ratesRepository: RatesRepository,
+            currencyStateStorage: CurrencyStateStorage
         ): RatesViewModel {
             return RatesViewModel(
                 loadRatesAndSave = loadRatesAndSave,
-                ratesRepository = ratesRepository
+                ratesRepository = ratesRepository,
+                currencyStateStorage = currencyStateStorage
             )
         }
 
@@ -52,6 +52,12 @@ abstract class RatesModule {
                 loadRatesGateway = loadRatesGateway
             )
         }
+
+        @JvmStatic
+        @Provides
+        @RatesScope
+        fun provideCurrencyStateStorage(): CurrencyStateStorage = CurrencyStateStorageImpl()
+
 
         @JvmStatic
         @Provides

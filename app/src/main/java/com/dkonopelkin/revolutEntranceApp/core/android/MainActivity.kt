@@ -10,9 +10,17 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        val fragment = RatesListFragment.newInstance()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment, RatesListFragment.FRAGMENT_TAG)
-            .commitAllowingStateLoss()
+
+        val isFragmentExists =
+            supportFragmentManager.findFragmentByTag(RatesListFragment.FRAGMENT_TAG) != null
+        if (!isFragmentExists) {
+            supportFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer,
+                    RatesListFragment.newInstance(),
+                    RatesListFragment.FRAGMENT_TAG
+                )
+                .commitAllowingStateLoss()
+        }
     }
 }
