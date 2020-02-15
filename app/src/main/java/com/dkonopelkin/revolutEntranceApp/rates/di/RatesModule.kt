@@ -2,6 +2,7 @@ package com.dkonopelkin.revolutEntranceApp.rates.di
 
 import android.content.Context
 import androidx.room.Room
+import com.dkonopelkin.revolutEntranceApp.core.utils.AppLifecycleObserver
 import com.dkonopelkin.revolutEntranceApp.rates.data.*
 import com.dkonopelkin.revolutEntranceApp.rates.domain.CurrencyStateStorage
 import com.dkonopelkin.revolutEntranceApp.rates.domain.LoadRatesGateway
@@ -32,12 +33,14 @@ abstract class RatesModule {
         fun provideRatesViewModel(
             loadRatesAndSave: LoadRatesAndSave,
             ratesRepository: RatesRepository,
-            currencyStateStorage: CurrencyStateStorage
+            currencyStateStorage: CurrencyStateStorage,
+            appLifecycleObserver: AppLifecycleObserver
         ): RatesViewModel {
             return RatesViewModel(
                 loadRatesAndSave = loadRatesAndSave,
                 ratesRepository = ratesRepository,
-                currencyStateStorage = currencyStateStorage
+                currencyStateStorage = currencyStateStorage,
+                appLifecycleObserver = appLifecycleObserver
             )
         }
 

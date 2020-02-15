@@ -1,6 +1,7 @@
 package com.dkonopelkin.revolutEntranceApp.core.di
 
 import com.dkonopelkin.revolutEntranceApp.core.config.ApplicationConst
+import com.dkonopelkin.revolutEntranceApp.core.utils.AppLifecycleObserver
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -46,5 +47,10 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun provideGson(): Gson = Gson()
+
+        @JvmStatic
+        @Provides
+        @Singleton
+        fun provideAppLifecycleObserver(): AppLifecycleObserver = AppLifecycleObserver()
     }
 }

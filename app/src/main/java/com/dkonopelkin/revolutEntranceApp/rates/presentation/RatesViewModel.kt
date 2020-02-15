@@ -3,12 +3,14 @@ package com.dkonopelkin.revolutEntranceApp.rates.presentation
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.dkonopelkin.revolutEntranceApp.core.utils.AppLifecycleObserver
 import com.dkonopelkin.revolutEntranceApp.core.utils.parseBigDecimal
 import com.dkonopelkin.revolutEntranceApp.core.utils.toFormattedString
 import com.dkonopelkin.revolutEntranceApp.rates.domain.CurrencyStateStorage
 import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
 import com.dkonopelkin.revolutEntranceApp.rates.interactors.LoadRatesAndSave
 import com.dkonopelkin.revolutEntranceApp.rates.types.CurrencyType
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -21,7 +23,8 @@ import java.util.concurrent.TimeUnit
 class RatesViewModel(
     private val loadRatesAndSave: LoadRatesAndSave,
     private val ratesRepository: RatesRepository,
-    private val currencyStateStorage: CurrencyStateStorage
+    private val currencyStateStorage: CurrencyStateStorage,
+    private val appLifecycleObserver: AppLifecycleObserver
 ) : ViewModel() {
 
     private val disposables = CompositeDisposable()
@@ -32,10 +35,18 @@ class RatesViewModel(
     private lateinit var currencyState: CurrencyStateStorage.Currency
     private val baseCurrencyObserver = currencyStateStorage.observe()
 
+    private var applicationState: AppLifecycleObserver.ApplicationState =
+        AppLifecycleObserver.ApplicationState.STARTED
+
     init {
         disposables.add(baseCurrencyObserver.subscribe { baseCurrency ->
             currencyState = baseCurrency
         })
+
+        disposables.add(appLifecycleObserver.observe().subscribe { appState ->
+            applicationState = appState
+        })
+
         updateRatesSubscription()
         updateUiSubscription()
     }
@@ -77,7 +88,11 @@ class RatesViewModel(
                 BiFunction { _, currency -> currency.code }
             )
             .switchMapCompletable { baseCode ->
-                loadRatesAndSave.invoke(baseCode)
+                if (applicationState != AppLifecycleObserver.ApplicationState.STOPPED) {
+                    loadRatesAndSave.invoke(baseCode)
+                } else {
+                    Completable.complete()
+                }
             }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -114,23 +129,6 @@ class RatesViewModel(
     }
 
     private fun updateUiSubscription() {
-        /*
-        val subscription = baseCurrencyObserver.switchMap { baseCurrency ->
-            Observable.combineLatest(
-                Observable.just(baseCurrency),
-                ratesRepository.observeRatesByCode(baseCurrency.code),
-                BiFunction<Currency, Map<String, BigDecimal>, List<Currency>> { currency, rates ->
-                    // TODO .scan or .collect
-                    val mutableList = mutableListOf<Currency>()
-                    rates.keys.forEach { code ->
-                        val amountRatio = rates[code]!! * baseCurrency.amount
-                        mutableList.add(Currency(code, amountRatio))
-                    }
-                    mutableList.add(0, currency)
-                    mutableList
-                })
-        }
-         */
 
         val subscription = baseCurrencyObserver.switchMap { baseCurrency ->
             Observable.combineLatest(
@@ -147,6 +145,20 @@ class RatesViewModel(
                     mutableList
                 })
         }
+
+/*
+        val subscription = baseCurrencyObserver
+            .switchMap { baseCurrency ->
+                ratesRepository.observeRatesByCode(baseCurrency.code)
+                    .flatMap { ratesMap: Map<String, BigDecimal> -> Observable.fromIterable(ratesMap.toList()) }
+                    .map { (code, ratio) ->
+                        CurrencyStateStorage.Currency(code, ratio * baseCurrency.amount)
+                    }
+                    .toList()
+                    .map { currencyList -> currencyList.add(0, baseCurrency) }
+                    .toObservable()
+            }
+*/
 
         disposables.add(subscription
             .subscribeOn(Schedulers.io())
