@@ -10,10 +10,10 @@ import com.dkonopelkin.revolutEntranceApp.rates.domain.CurrencyStateStorage
 import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
 import com.dkonopelkin.revolutEntranceApp.rates.interactors.LoadRatesAndSave
 import com.dkonopelkin.revolutEntranceApp.rates.types.CurrencyType
-import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.schedulers.Schedulers
 import java.math.BigDecimal
@@ -24,10 +24,11 @@ class RatesViewModel(
     private val loadRatesAndSave: LoadRatesAndSave,
     private val ratesRepository: RatesRepository,
     private val currencyStateStorage: CurrencyStateStorage,
-    private val appLifecycleObserver: AppLifecycleObserver
+    appLifecycleObserver: AppLifecycleObserver
 ) : ViewModel() {
 
     private val disposables = CompositeDisposable()
+    private lateinit var ratesUpdateDisposable: Disposable
 
     val stateLiveData = MutableLiveData<UIState>()
     val errorLiveData = MutableLiveData<Error>()
@@ -35,25 +36,26 @@ class RatesViewModel(
     private lateinit var currencyState: CurrencyStateStorage.Currency
     private val baseCurrencyObserver = currencyStateStorage.observe()
 
-    private var applicationState: AppLifecycleObserver.ApplicationState =
-        AppLifecycleObserver.ApplicationState.STARTED
-
     init {
         disposables.add(baseCurrencyObserver.subscribe { baseCurrency ->
             currencyState = baseCurrency
         })
 
         disposables.add(appLifecycleObserver.observe().subscribe { appState ->
-            applicationState = appState
+            if (appState == AppLifecycleObserver.ApplicationState.STOPPED) {
+                disposeRatesSubscription()
+            } else {
+                updateRatesSubscription()
+            }
         })
 
-        updateRatesSubscription()
         updateUiSubscription()
     }
 
     override fun onCleared() {
         super.onCleared()
         disposables.dispose()
+        ratesUpdateDisposable.dispose()
     }
 
     fun onCurrencySelected(currencyCode: String, amount: String) {
@@ -78,21 +80,16 @@ class RatesViewModel(
     }
 
     private fun updateRatesSubscription() {
-
         val intervalUpdateSignal = Observable.interval(5, TimeUnit.SECONDS).startWith(0)
 
-        disposables.add(Observable
+        ratesUpdateDisposable = Observable
             .combineLatest<Long, CurrencyStateStorage.Currency, String>(
                 intervalUpdateSignal,
                 baseCurrencyObserver.observeOn(Schedulers.io()),
                 BiFunction { _, currency -> currency.code }
             )
             .switchMapCompletable { baseCode ->
-                if (applicationState != AppLifecycleObserver.ApplicationState.STOPPED) {
-                    loadRatesAndSave.invoke(baseCode)
-                } else {
-                    Completable.complete()
-                }
+                loadRatesAndSave.invoke(baseCode)
             }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
@@ -100,7 +97,10 @@ class RatesViewModel(
                 Log.d("onError", throwable.toString())
                 errorLiveData.value = mapErrors(throwable)
             })
-        )
+    }
+
+    private fun disposeRatesSubscription() {
+        ratesUpdateDisposable.dispose()
     }
 
     private fun mapErrors(throwable: Throwable): Error {
