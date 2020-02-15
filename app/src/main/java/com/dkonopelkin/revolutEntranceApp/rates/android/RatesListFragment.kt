@@ -11,10 +11,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dkonopelkin.revolutEntranceApp.R
 import com.dkonopelkin.revolutEntranceApp.rates.di.RatesViewModelFactory
-import com.dkonopelkin.revolutEntranceApp.rates.presentation.RatesViewModel
+import com.dkonopelkin.revolutEntranceApp.rates.viewmodel.RatesViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.fragment_rates.*
-
 
 class RatesListFragment : Fragment() {
 
@@ -41,8 +40,7 @@ class RatesListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         super.onCreateView(inflater, container, savedInstanceState)
-        val view = inflater.inflate(R.layout.fragment_rates, container, false)
-        return view
+        return inflater.inflate(R.layout.fragment_rates, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -55,15 +53,9 @@ class RatesListFragment : Fragment() {
             adapter = ratesListAdapter
         }
 
-        viewModel.stateLiveData.observe(
-            this.viewLifecycleOwner,
-            Observer { newState -> updateUIState(newState) })
+        viewModel.stateLiveData.observe(this.viewLifecycleOwner, Observer { newState -> updateUIState(newState) })
 
-        viewModel.errorLiveData.observe(
-            this.viewLifecycleOwner,
-            Observer { error ->
-                showErrorInfo(error)
-            })
+        viewModel.errorLiveData.observe(this.viewLifecycleOwner, Observer { error -> showErrorInfo(error) })
     }
 
     private fun showErrorInfo(error: RatesViewModel.Error) {
@@ -85,15 +77,9 @@ class RatesListFragment : Fragment() {
     }
 
     private fun showOfflineSnackbar() {
-        Snackbar
-            .make(
-                coordinatorLayout,
-                getString(R.string.snackbar_connection_lost),
-                Snackbar.LENGTH_INDEFINITE
-            )
-            .setAction(getString(R.string.snackbar_retry_button)) {
-                viewModel.onRetrySubscription()
-            }.show()
+        Snackbar.make(coordinatorLayout, getString(R.string.snackbar_connection_lost), Snackbar.LENGTH_INDEFINITE)
+            .setAction(getString(R.string.snackbar_retry_button)) { viewModel.updateRatesSubscription() }
+            .show()
     }
 
     private fun updateUIState(state: RatesViewModel.UIState) {
@@ -103,8 +89,6 @@ class RatesListFragment : Fragment() {
     companion object {
         const val FRAGMENT_TAG = "RatesListFragment"
 
-        fun newInstance(): RatesListFragment {
-            return RatesListFragment()
-        }
+        fun newInstance(): RatesListFragment = RatesListFragment()
     }
 }

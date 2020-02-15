@@ -29,7 +29,7 @@ class CurrencyStateStorageImpl(context: Context, private val gson: Gson) : Curre
             )
             update(data)
         } else {
-            update(CurrencyStateStorage.Currency("EUR", BigDecimal(100)))
+            update(CurrencyStateStorage.Currency("AUD", BigDecimal(100)))
         }
     }
 

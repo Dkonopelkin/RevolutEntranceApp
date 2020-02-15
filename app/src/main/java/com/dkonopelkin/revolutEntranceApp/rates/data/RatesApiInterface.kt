@@ -5,7 +5,7 @@ import io.reactivex.Single
 import retrofit2.http.GET
 import retrofit2.http.Query
 import java.math.BigDecimal
-import java.util.*
+import java.util.Date
 
 interface RatesApiInterface {
 

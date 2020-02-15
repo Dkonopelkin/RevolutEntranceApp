@@ -1,8 +1,7 @@
 package com.dkonopelkin.revolutEntranceApp.rates.di
 
 import com.dkonopelkin.revolutEntranceApp.core.di.AppDependencies
-import com.dkonopelkin.revolutEntranceApp.rates.android.RatesListFragment
-import com.dkonopelkin.revolutEntranceApp.rates.presentation.RatesViewModel
+import com.dkonopelkin.revolutEntranceApp.rates.viewmodel.RatesViewModel
 import dagger.Component
 
 @Component(modules = [RatesModule::class], dependencies = [AppDependencies::class])

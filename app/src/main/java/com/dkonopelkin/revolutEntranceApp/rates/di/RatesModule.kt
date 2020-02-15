@@ -4,11 +4,8 @@ import android.content.Context
 import androidx.room.Room
 import com.dkonopelkin.revolutEntranceApp.core.utils.AppLifecycleObserver
 import com.dkonopelkin.revolutEntranceApp.rates.data.*
-import com.dkonopelkin.revolutEntranceApp.rates.domain.CurrencyStateStorage
-import com.dkonopelkin.revolutEntranceApp.rates.domain.LoadRatesGateway
-import com.dkonopelkin.revolutEntranceApp.rates.domain.RatesRepository
-import com.dkonopelkin.revolutEntranceApp.rates.interactors.LoadRatesAndSave
-import com.dkonopelkin.revolutEntranceApp.rates.presentation.RatesViewModel
+import com.dkonopelkin.revolutEntranceApp.rates.domain.*
+import com.dkonopelkin.revolutEntranceApp.rates.viewmodel.RatesViewModel
 import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
@@ -31,15 +28,17 @@ abstract class RatesModule {
         @Provides
         @RatesScope
         fun provideRatesViewModel(
-            loadRatesAndSave: LoadRatesAndSave,
-            ratesRepository: RatesRepository,
+            loadRatesAndUpdateRepository: LoadRatesAndUpdateRepository,
             currencyStateStorage: CurrencyStateStorage,
+            getUiStateObserver: GetUiStateObserver,
+            updateRatesIntervalObserver: UpdateRatesIntervalObserver,
             appLifecycleObserver: AppLifecycleObserver
         ): RatesViewModel {
             return RatesViewModel(
-                loadRatesAndSave = loadRatesAndSave,
-                ratesRepository = ratesRepository,
+                loadRatesAndUpdateRepository = loadRatesAndUpdateRepository,
                 currencyStateStorage = currencyStateStorage,
+                getUiStateObserver = getUiStateObserver,
+                updateRatesIntervalObserver = updateRatesIntervalObserver,
                 appLifecycleObserver = appLifecycleObserver
             )
         }
@@ -47,13 +46,37 @@ abstract class RatesModule {
         @JvmStatic
         @Provides
         @RatesScope
-        fun provideLoadRatesAndSave(
+        fun provideLoadRatesAndUpdateRepository(
             ratesRepository: RatesRepository,
-            loadRatesGateway: LoadRatesGateway
-        ): LoadRatesAndSave {
-            return LoadRatesAndSave(
+            ratesGateway: RatesGateway
+        ): LoadRatesAndUpdateRepository {
+            return LoadRatesAndUpdateRepository(
                 ratesRepository = ratesRepository,
-                loadRatesGateway = loadRatesGateway
+                ratesGateway = ratesGateway
+            )
+        }
+
+        @JvmStatic
+        @Provides
+        @RatesScope
+        fun provideUpdateRatesIntervalObserver(
+            currencyStateStorage: CurrencyStateStorage
+        ): UpdateRatesIntervalObserver {
+            return UpdateRatesIntervalObserver(
+                currencyStateStorage = currencyStateStorage
+            )
+        }
+
+        @JvmStatic
+        @Provides
+        @RatesScope
+        fun provideGetUiStateObserver(
+            ratesRepository: RatesRepository,
+            currencyStateStorage: CurrencyStateStorage
+        ): GetUiStateObserver {
+            return GetUiStateObserver(
+                ratesRepository = ratesRepository,
+                currencyStateStorage = currencyStateStorage
             )
         }
 
@@ -67,8 +90,8 @@ abstract class RatesModule {
         @JvmStatic
         @Provides
         @RatesScope
-        fun provideLoadRatesGateway(ratesApiInterface: RatesApiInterface): LoadRatesGateway =
-            LoadRatesGatewayImpl(ratesApiInterface = ratesApiInterface)
+        fun provideLoadRatesGateway(ratesApiInterface: RatesApiInterface): RatesGateway =
+            RatesGatewayImpl(ratesApiInterface = ratesApiInterface)
 
         @JvmStatic
         @Provides
