@@ -30,14 +30,14 @@ abstract class RatesModule {
         fun provideRatesViewModel(
             loadRatesAndUpdateRepository: LoadRatesAndUpdateRepository,
             currencyStateStorage: CurrencyStateStorage,
-            getUiStateObserver: GetUiStateObserver,
+            uiStateObserver: UiStateObserver,
             updateRatesIntervalObserver: UpdateRatesIntervalObserver,
             appLifecycleObserver: AppLifecycleObserver
         ): RatesViewModel {
             return RatesViewModel(
                 loadRatesAndUpdateRepository = loadRatesAndUpdateRepository,
                 currencyStateStorage = currencyStateStorage,
-                getUiStateObserver = getUiStateObserver,
+                uiStateObserver = uiStateObserver,
                 updateRatesIntervalObserver = updateRatesIntervalObserver,
                 appLifecycleObserver = appLifecycleObserver
             )
@@ -73,8 +73,8 @@ abstract class RatesModule {
         fun provideGetUiStateObserver(
             ratesRepository: RatesRepository,
             currencyStateStorage: CurrencyStateStorage
-        ): GetUiStateObserver {
-            return GetUiStateObserver(
+        ): UiStateObserver {
+            return UiStateObserver(
                 ratesRepository = ratesRepository,
                 currencyStateStorage = currencyStateStorage
             )

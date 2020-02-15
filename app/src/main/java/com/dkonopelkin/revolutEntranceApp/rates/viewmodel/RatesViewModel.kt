@@ -6,8 +6,8 @@ import com.dkonopelkin.revolutEntranceApp.core.utils.AppLifecycleObserver
 import com.dkonopelkin.revolutEntranceApp.core.utils.parseBigDecimal
 import com.dkonopelkin.revolutEntranceApp.core.utils.toFormattedString
 import com.dkonopelkin.revolutEntranceApp.rates.domain.CurrencyStateStorage
-import com.dkonopelkin.revolutEntranceApp.rates.domain.GetUiStateObserver
 import com.dkonopelkin.revolutEntranceApp.rates.domain.LoadRatesAndUpdateRepository
+import com.dkonopelkin.revolutEntranceApp.rates.domain.UiStateObserver
 import com.dkonopelkin.revolutEntranceApp.rates.domain.UpdateRatesIntervalObserver
 import com.dkonopelkin.revolutEntranceApp.rates.types.CurrencyType
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -19,7 +19,7 @@ import java.net.UnknownHostException
 class RatesViewModel(
     private val loadRatesAndUpdateRepository: LoadRatesAndUpdateRepository,
     private val currencyStateStorage: CurrencyStateStorage,
-    private val getUiStateObserver: GetUiStateObserver,
+    private val uiStateObserver: UiStateObserver,
     private val updateRatesIntervalObserver: UpdateRatesIntervalObserver,
     appLifecycleObserver: AppLifecycleObserver
 ) : ViewModel() {
@@ -79,10 +79,8 @@ class RatesViewModel(
     fun updateRatesSubscription() {
         errorLiveData.value = Error.NoError
 
-        ratesUpdateDisposable = updateRatesIntervalObserver.invoke()
-            .switchMapCompletable { baseCode ->
-                loadRatesAndUpdateRepository.invoke(baseCode)
-            }
+        ratesUpdateDisposable = updateRatesIntervalObserver.getObservable()
+            .switchMapCompletable { baseCode -> loadRatesAndUpdateRepository.invoke(baseCode) }
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({}, { throwable -> errorLiveData.value = mapErrors(throwable) })
@@ -99,22 +97,22 @@ class RatesViewModel(
         }
     }
 
-    private fun mapUiState(sourceList: List<GetUiStateObserver.Currency>): UIState {
-        val list = sourceList.mapIndexed { index, currency ->
+    private fun mapUiState(sourceList: List<UiStateObserver.Currency>): UIState {
+        val list = sourceList.map { currency ->
             val currencyInfo = CurrencyType.getByCurrencyCode(currency.code)
             UIState.RateItem(
                 code = currency.code,
                 description = currencyInfo.currencyDescription,
                 amount = currency.amount.toFormattedString(),
                 icon = currencyInfo.iconResId,
-                isBaseCurrency = index == 0
+                isBaseCurrency = currency.isCurrent
             )
         }
         return UIState(list)
     }
 
     private fun observeUiState() {
-        disposables.add(getUiStateObserver.invoke()
+        disposables.add(uiStateObserver.getObservable()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(

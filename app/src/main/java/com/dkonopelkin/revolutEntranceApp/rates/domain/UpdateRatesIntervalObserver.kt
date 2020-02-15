@@ -10,7 +10,7 @@ class UpdateRatesIntervalObserver(
 ) {
     private val intervalUpdateSignal = Observable.interval(5, TimeUnit.SECONDS).startWith(0)
 
-    fun invoke(): Observable<String> {
+    fun getObservable(): Observable<String> {
         return Observable
             .combineLatest<Long, CurrencyStateStorage.Currency, String>(
                 intervalUpdateSignal,
