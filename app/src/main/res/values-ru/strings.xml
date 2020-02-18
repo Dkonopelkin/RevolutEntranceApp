@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Курсы валют</string>
+    <string name="snackbar_connection_lost">Соединение прервано</string>
+    <string name="snackbar_retry_button">Повторить</string>
+    <string name="error_dialog_title">Ошибка</string>
+    <string name="error_dialog_button_ok">OK</string>
+</resources>

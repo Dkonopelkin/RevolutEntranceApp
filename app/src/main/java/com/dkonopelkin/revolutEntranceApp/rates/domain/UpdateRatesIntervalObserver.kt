@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 class UpdateRatesIntervalObserver(
     private val currencyStateStorage: CurrencyStateStorage
 ) {
-    private val intervalUpdateSignal = Observable.interval(5, TimeUnit.SECONDS).startWith(0)
+    private val intervalUpdateSignal = Observable.interval(1, TimeUnit.SECONDS).startWith(0)
 
     fun getObservable(): Observable<String> {
         return Observable
