@@ -8,6 +8,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.dkonopelkin.revolutEntranceApp.core.di.AppInjector
 import com.dkonopelkin.revolutEntranceApp.core.utils.hideKeyboard
+import com.dkonopelkin.revolutEntranceApp.core.utils.showKeyboard
 import com.dkonopelkin.revolutEntranceApp.core.utils.update
 import com.dkonopelkin.revolutEntranceApp.rates.viewmodel.RatesViewModel
 import kotlinx.android.extensions.LayoutContainer
@@ -28,7 +29,11 @@ class RatesListViewHolder(
             inputField.filters = arrayOf(InputFilter.LengthFilter(6))
         }
 
-        containerView.setOnClickListener { inputField.requestFocus() }
+        containerView.setOnClickListener {
+            inputField.requestFocus()
+            inputField.setSelection(inputField.text?.length ?: 0)
+            inputField.showKeyboard()
+        }
         inputField.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
                 callback.onItemSelected(item.code, item.amount)

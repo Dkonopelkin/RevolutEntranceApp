@@ -24,6 +24,6 @@ fun BigDecimal.toFormattedString(): String {
 
 fun String.parseBigDecimal(): BigDecimal {
     val newString = this.replace(oldChar = ',', newChar = '.', ignoreCase = true)
-    if (this.isBlank() || this == ".") return BigDecimal.ZERO
+    if (newString.isBlank() || newString == ".") return BigDecimal.ZERO
     return newString.toBigDecimal()
 }

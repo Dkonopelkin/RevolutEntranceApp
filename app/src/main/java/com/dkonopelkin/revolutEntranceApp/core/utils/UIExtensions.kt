@@ -18,3 +18,10 @@ fun View.hideKeyboard() {
         imm.hideSoftInputFromWindow(this.windowToken, 0)
     }
 }
+
+fun EditText.showKeyboard() {
+    if (ViewCompat.isAttachedToWindow(this)) {
+        val imm = this.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(this, InputMethodManager.SHOW_IMPLICIT)
+    }
+}
