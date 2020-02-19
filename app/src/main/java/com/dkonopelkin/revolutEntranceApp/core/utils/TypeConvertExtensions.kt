@@ -3,11 +3,15 @@ package com.dkonopelkin.revolutEntranceApp.core.utils
 import com.dkonopelkin.revolutEntranceApp.core.utils.TypeConvertExtensions.decimalFormat
 import java.math.BigDecimal
 import java.text.DecimalFormat
+import java.text.DecimalFormatSymbols
 
 object TypeConvertExtensions {
+    private val decimalFormatSymbols = DecimalFormatSymbols()
     val decimalFormat = DecimalFormat()
 
     init {
+        decimalFormatSymbols.decimalSeparator = '.'
+        decimalFormat.decimalFormatSymbols = decimalFormatSymbols
         decimalFormat.maximumFractionDigits = 2
         decimalFormat.minimumFractionDigits = 0
         decimalFormat.isGroupingUsed = false
