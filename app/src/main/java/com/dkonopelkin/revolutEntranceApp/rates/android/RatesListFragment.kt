@@ -19,6 +19,7 @@ class RatesListFragment : Fragment() {
 
     private lateinit var viewModel: RatesViewModel
     private lateinit var ratesListAdapter: RatesListAdapter
+    private lateinit var offlineSnackbar: Snackbar
     private val callback = object : RatesListAdapter.Callback {
         override fun onItemSelected(currencyCode: String, amount: String) {
             viewModel.onCurrencySelected(currencyCode, amount)
@@ -46,6 +47,13 @@ class RatesListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        offlineSnackbar = Snackbar.make(
+            coordinatorLayout,
+            getString(R.string.snackbar_connection_lost),
+            Snackbar.LENGTH_INDEFINITE
+        )
+            .setAction(getString(R.string.snackbar_retry_button)) { viewModel.updateRatesSubscription() }
+
         ratesListAdapter = RatesListAdapter(arrayListOf(), requireContext(), callback)
         recyclerView.apply {
             setHasFixedSize(true)
@@ -53,9 +61,13 @@ class RatesListFragment : Fragment() {
             adapter = ratesListAdapter
         }
 
-        viewModel.stateLiveData.observe(this.viewLifecycleOwner, Observer { newState -> updateUIState(newState) })
+        viewModel.stateLiveData.observe(
+            this.viewLifecycleOwner,
+            Observer { newState -> updateUIState(newState) })
 
-        viewModel.errorLiveData.observe(this.viewLifecycleOwner, Observer { error -> showErrorInfo(error) })
+        viewModel.errorLiveData.observe(
+            this.viewLifecycleOwner,
+            Observer { error -> showErrorInfo(error) })
     }
 
     private fun showErrorInfo(error: RatesViewModel.Error) {
@@ -72,14 +84,17 @@ class RatesListFragment : Fragment() {
                 showOfflineSnackbar()
             }
             is RatesViewModel.Error.NoError -> {
+                hideOfflineSnackbar()
             }
         }
     }
 
     private fun showOfflineSnackbar() {
-        Snackbar.make(coordinatorLayout, getString(R.string.snackbar_connection_lost), Snackbar.LENGTH_INDEFINITE)
-            .setAction(getString(R.string.snackbar_retry_button)) { viewModel.updateRatesSubscription() }
-            .show()
+        view?.postDelayed({ offlineSnackbar.show() }, 300)
+    }
+
+    private fun hideOfflineSnackbar() {
+        offlineSnackbar.dismiss()
     }
 
     private fun updateUIState(state: RatesViewModel.UIState) {
